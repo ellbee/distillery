@@ -295,7 +295,6 @@ if "" == "%args%" (
             -w "%mutable_dir%" ^
             -m "%start_erl%" ^
             -args "!service_args!" ^
-            -debugtype new ^
             -stopaction "init:stop()."
   endlocal
 ) else (
