@@ -21,6 +21,7 @@ $service_argv += $erl_opts
 $service_argv += @("-boot_var", "ERTS_LIB_DIR", $Env:ERTS_LIB_DIR)
 $service_argv += @("-config", $Env:SYS_CONFIG_PATH)
 $service_argv += @("-setcookie", $Env:COOKIE)
+$service_argv += @("-mode", "embedded")
 # Add code paths
 $codepaths = get-code-paths
 $service_argv += "-pa"
