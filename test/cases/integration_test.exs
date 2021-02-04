@@ -3,7 +3,7 @@ defmodule Distillery.Test.IntegrationTest do
   
   @moduletag win32: false
 
-  alias Mix.Releases.Utils
+  alias Distillery.Releases.Utils
   import Distillery.Test.Helpers
 
   describe "standard application" do
@@ -140,7 +140,7 @@ defmodule Distillery.Test.IntegrationTest do
         v1_to_v2()
         # Generate appup from old to new version
         assert {:ok, _} = mix("compile")
-        assert {:ok, _} = mix("release.gen.appup", ["--app=standard_app"])
+        assert {:ok, _} = mix("distillery.gen.appup", ["--app=standard_app"])
         # Build v2 release
         assert {:ok, _} = build_release(upgrade: true)
         # Verify versions
@@ -260,7 +260,7 @@ defmodule Distillery.Test.IntegrationTest do
         :timer.sleep(1_000)
         try_healthz(tries + 1)
       _ ->
-        IO.inspect "Request (attempt #{tries} of 5) to /healthz endpoint failed with: #{err}"
+        IO.inspect "Requests to /healthz endpoint exhausted retries"
         :error
     end
   end

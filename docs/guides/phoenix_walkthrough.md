@@ -33,7 +33,6 @@ First let's modify the Phoenix `config/prod.exs` file. Change this section of te
 
 ```elixir
 config :phoenix_distillery, PhoenixDistilleryWeb.Endpoint,
-  http: [:inet6, port: System.get_env("PORT") || 4000],
   url: [host: "example.com", port: 80],
   cache_static_manifest: "priv/static/cache_manifest.json"
 ```
@@ -42,13 +41,34 @@ to the following:
 
 ```elixir
 config :phoenix_distillery, PhoenixDistilleryWeb.Endpoint,
-  http: [:inet6, port: System.get_env("PORT") || 4000],
-  url: [host: "localhost", port: System.get_env("PORT")], # This is critical for ensuring web-sockets properly authorize.
+  http: [:inet6, port: {:system, "PORT"}],
+  url: [host: "localhost", port: {:system, "PORT"}], # This is critical for ensuring web-sockets properly authorize.
   cache_static_manifest: "priv/static/cache_manifest.json",
   server: true,
   root: ".",
   version: Application.spec(:phoenix_distillery, :vsn)
 ```
+
+We also need to change the secret key base in `config/prod.secret.exs` . Change this section of text:
+
+```elixir
+secret_key_base =
+  System.get_env("SECRET_KEY_BASE") ||
+    raise """
+    environment variable SECRET_KEY_BASE is missing.
+    You can generate one by calling: mix phx.gen.secret
+    """
+```
+
+to the following:
+
+```elixir
+secret_key_base =
+  "5U8dBbveeM1DMJtFZq6Ybaum394cVHDHHj/YnKo8r8461WS9eFDWT2YpLzuODsan"
+```
+
+**NOTE** The secret key base should be generated using `mix phx.gen.secret`. It
+should also not be committed to your VCS in plain text.
 
 Let's discuss these options.
 
@@ -75,7 +95,7 @@ The above commands are not unique to Distillery, they are required by Phoenix to
 
 The following initializes Distillery for the project:
 ```
-$ mix release.init
+$ mix distillery.init
 ```
 
 The above command will create the file `rel/config.exs` in addition to an empty directory `rel/plugins/`. Please refer to the Distillery [walkthrough](https://github.com/bitwalker/distillery/blob/master/docs/Walkthrough.md) for a detailed look at the configuration options available.
@@ -83,7 +103,7 @@ The above command will create the file `rel/config.exs` in addition to an empty 
 To build the release the following command is executed:
 
 ```
-$ MIX_ENV=prod mix release
+$ MIX_ENV=prod mix distillery.release
 ```
 
 To run your release, execute the following command:
@@ -98,7 +118,7 @@ You should be able to go to [localhost:4001](localhost:4001) and load the defaul
 $ npm run deploy --prefix assets && MIX_ENV=prod mix do phx.digest, release --env=prod
 ```
 
-*NOTE*: If you run `mix release` with `MIX_ENV=dev` (the default), then you must also ensure that you set `code_reloader: false` in your configuration. If you do not, you'll get a failure at runtime about being unable to start `Phoenix.CodeReloader.Server` because it depends on Mix, which is not intended to be packaged in releases. As you won't be doing code reloading in a release (at least not with the same mechanism), you must disable this.
+*NOTE*: If you run `mix distillery.release` with `MIX_ENV=dev` (the default), then you must also ensure that you set `code_reloader: false` in your configuration. If you do not, you'll get a failure at runtime about being unable to start `Phoenix.CodeReloader.Server` because it depends on Mix, which is not intended to be packaged in releases. As you won't be doing code reloading in a release (at least not with the same mechanism), you must disable this.
 
 
 ### Version 0.0.1
@@ -111,7 +131,7 @@ If you followed the above you will have generated a working release. A few notes
 - `MIX_ENV=prod mix phx.digest` To compress and tag your assets
     for proper caching. More detail can be found in the
     [Phoenix Mix Task Guide](https://hexdocs.pm/phoenix/Mix.Tasks.Phoenix.Digest.html)
-- `MIX_ENV=prod mix release --env=prod` To actually generate a release for a
+- `MIX_ENV=prod mix distillery.release --env=prod` To actually generate a release for a
     production environment
 
 You might wonder "why all the hassle to build a release?" A Phoenix project in `dev` mode is
